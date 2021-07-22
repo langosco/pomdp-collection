@@ -4,7 +4,10 @@ from gym.utils import seeding
 import numpy as np
 
 
-class ButtonEnv(gym.Env):
+class IteratedSelfPD(gym.Env):
+    """
+    Iterated prisoners dilemma, single-player version.
+    """
     metadata = {'render.modes': ['human']}
 
     def __init__(self, 
@@ -13,7 +16,7 @@ class ButtonEnv(gym.Env):
         """
         args
             episode_len
-            reset_state: one of 'random', 'push', 'pass'
+            reset_state: one of 'random', 'coop', 'defect'
         """
         super().__init__()
         self.action_space = spaces.Discrete(2)
@@ -35,26 +38,26 @@ class ButtonEnv(gym.Env):
             ob (object) :
                 Always None (no observations)
             reward (float) :
-                -1 if button is pushed (action=1), else 0.
-                If button was pushed in the previous step, add 10.
+                -1 if coop (action=1), else -1/2.
+                If cooperated in the previous step, add 1/2.
             episode_over (bool) :
                 After self.max_steps steps (default one million steps).
             info (dict) :
-                includes environment state self.button_pushed (whether
+                includes environment state self.cooperated (whether
                 the button was pushed in the previous timestep).
         """
         self.current_step += 1
-        if self.button_pushed:
-            reward = 10
-        else:
+        if self.cooperated:
             reward = 0
-        info = {'button_pushed': self.button_pushed}
+        else:
+            reward = -1
+        info = {'cooperated': self.cooperated}
 
         if action == 1:
-            self.button_pushed = True
-            reward = reward - 1
+            self.cooperated = True
         elif action == 0:
-            self.button_pushed = False
+            self.cooperated = False
+            reward += 1/2
 
         ob = 1
         episode_over = self.current_step >= self.episode_len
@@ -62,19 +65,19 @@ class ButtonEnv(gym.Env):
 
     def reset(self):
         if self.reset_state == "random":
-            self.button_pushed = np.random.choice([True, False])
-        elif self.reset_state == "push":
-            self.button_pushed = True
-        elif self.reset_state == "pass":
-            self.button_pushed = False
+            self.cooperated = np.random.choice([True, False])
+        elif self.reset_state == "coop":
+            self.cooperated = True
+        elif self.reset_state == "defect":
+            self.cooperated = False
         else:
-            raise ValueError('reset_state must be one of "random", "push", or "pass".')
+            raise ValueError('reset_state must be one of "random", "coop", or "defect".')
         self.current_step = 0
         ob = 1
         return ob
 
     def render(self, mode='human'):
-        print("Button pushed:", self.button_pushed)
+        print("Cooperated:", self.coop)
 
     def close(self):
         pass
