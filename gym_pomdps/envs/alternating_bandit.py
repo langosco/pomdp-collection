@@ -57,12 +57,16 @@ class AlternatingBandit(gym.Env):
         self.reset()
 
     def _reward(self, action: tuple):
+        """
+        side 0: danger, arm 2 gives -10
+        side 1: safe, arm 2 gives +5
+        """
         arm, _ = action
         _, side = self.state
         if arm == 0:
             return 1
         elif arm == 1:
-            return -10*(1-side) + 2*side
+            return -10*(1-side) + 5*side
 
     def _update_state(self, action):
         _, flip_rock = action
@@ -104,12 +108,13 @@ class AlternatingBandit(gym.Env):
     def reset(self):
         self.state = (0, 0)  # (color_idx, side)
         self.current_step = 0
+        ob = self.state[0]
         return ob
 
     def render(self, mode='human'):
         color, side = self.state
         print("Rock color:", ["red", "green"][color])
-        print("Arm two:", ["safe", "danger"][side])
+        print("Arm two:", ["danger", "safe"][side])
 
     def close(self):
         pass
