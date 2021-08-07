@@ -1,4 +1,4 @@
-from gym_custom.envs.iterated_prisoners_dilemma import IteratedSelfPD
-from gym_custom.envs.self_reinforcing_bandit import SelfReinforcingBandit, POMDPBandit
-from gym_custom.envs.two_fixed_points import TwoFixedPoints
-from gym_custom.envs.alternating_bandit import AlternatingBandit
+from gym_pomdps.envs.iterated_prisoners_dilemma import IteratedSelfPD
+from gym_pomdps.envs.self_reinforcing_bandit import SelfReinforcingBandit, POMDPBandit
+from gym_pomdps.envs.two_fixed_points import TwoFixedPoints
+from gym_pomdps.envs.alternating_bandit import AlternatingBandit
