@@ -7,26 +7,26 @@ import itertools
 ###############
 # DESCRIPTION 
 ###############
-# A 2-bandit game with a twist.
+# A 2-armed bandit game with a twist.
 #
 # Arm b1 always gives reward 1
 # Arm b2 alternates between reward 5 and -10. That is, it
 # returns reward 
-#       r(t, b2) = 5 if t odd, else -10,
+#       r(t, b2) = 5 if t even, else -10,
 # where t is the (unobserved) timestep. Note this is a
 # POMDP.
 # Given these rewards, a memoryless agent should simply
 # learn to always pull b1.
 #
-# But: the environment also includes a rock, painted green
+# But: the environment also includes a sign, painted green
 # on one side and red on the other. At each timestep, in
 # addition to pulling an arm, the agent may decide to 
-# flip the rock. In the next timestep, the agent will
-# observe the color of the rock. 
-# An optimal policy will use the rock as external memory:
-# it will flip the rock at each turn, and use the alternating
+# flip the sign. In the next timestep, the agent will
+# observe the color of the sign. 
+# An optimal policy will use the sign as external memory:
+# it will flip the sign at each turn, and use the alternating
 # observations to only pull arm b2 every other turn.
-# This is possible only if the initial rock state is
+# This is possible only if the initial sign state is
 # always the same, which is the case in this implementation.
 #
 # Formally: the action space is
@@ -50,31 +50,31 @@ class AlternatingBandit(gym.Env):
         """
         super().__init__()
         arms = spaces.Discrete(2)  # {b1, b2}
-        rock = spaces.Discrete(2)  # {flip, don't flip}
-        self.action_space = spaces.Tuple((arms, rock))
+        sign = spaces.Discrete(2)  # {flip, don't flip}
+        self.action_space = spaces.Tuple((arms, sign))
         self.observation_space = spaces.Discrete(2)
         self.episode_len = episode_len
         self.reset()
 
     def _reward(self, action: tuple):
         """
-        side 0: danger, arm 2 gives -10
-        side 1: safe, arm 2 gives +5
+        safe 0: danger, arm 2 gives -10
+        safe 1: safe, arm 2 gives +5
         """
         arm, _ = action
-        _, side = self.state
+        _, safe = self.state
         if arm == 0:
             return 1
         elif arm == 1:
-            return -10*(1-side) + 5*side
+            return -10*(1-safe) + 5*safe
 
     def _update_state(self, action):
-        _, flip_rock = action
-        color, side = self.state
-        if flip_rock:
+        _, flip_sign = action
+        color, safe = self.state
+        if flip_sign:
             color = 1 - color
-        side = 1 - side
-        self.state = (color, side)
+        safe = 1 - safe
+        self.state = (color, safe)
         self.current_step += 1
         return
 
@@ -99,22 +99,41 @@ class AlternatingBandit(gym.Env):
         reward = self._reward(action)
         self._update_state(action)
 
-        color, side = self.state
+        color, safe = self.state
         ob = color  # only observe color
         done = self.current_step >= self.episode_len
-        info = {"rock_color": color, "side": side}
+        info = {"sign_color": color, "safe": safe}
         return ob, reward, done, info
 
     def reset(self):
-        self.state = (0, 0)  # (color_idx, side)
+        self.state = (0, 0)  # (color_idx, safe)
         self.current_step = 0
         ob = self.state[0]
         return ob
 
     def render(self, mode='human'):
-        color, side = self.state
-        print("Rock color:", ["red", "green"][color])
-        print("Arm two:", ["danger", "safe"][side])
+        color, safe = self.state
+        print("Sign color:", ["red", "green"][color])
+        print("Arm two:", ["danger", "safe"][safe])
 
     def close(self):
         pass
+
+
+class MakeActionSpaceDiscrete(gym.Wrapper):
+    """
+    Wrapper that changes the shape of an environment
+    action space from tuple to discrete.
+    """
+    def __init__(self, env):
+        super().__init__(env)
+        self.flatdim = spaces.utils.flatdim(self.action_space)
+        self.action_space = spaces.Discrete(self.flatdim)
+
+    def flat_to_tuple(self, action):
+        return (action % self.flatdim, action // self.flatdim)
+
+    def step(self, action):
+        action = self.flat_to_tuple(action)
+        return super().step(action)
+
