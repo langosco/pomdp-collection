@@ -4,18 +4,19 @@ from gym.utils import seeding
 import numpy as np
 
 
-class TwoFixedPoints(gym.Env):
+class DoubleTap(gym.Env):
     """
     Simple environment with two fixed points.
     Two states: a and b.
     Two actions: 0 moves to a, 1 moves to b
-    No reward for moving. a -> a gives reward 1, b -> b gives reward 2
+    No reward for switching state. a -> a gives reward 1, b -> b gives reward 2
     """
     metadata = {'render.modes': ['human']}
 
     def __init__(self, 
             episode_len=40,
-            reset_state='random'):
+            reset_state='random',
+            dqn=False):
         """
         args
             episode_len: integer
@@ -23,7 +24,12 @@ class TwoFixedPoints(gym.Env):
         """
         super().__init__()
         self.action_space = spaces.Discrete(2)
-        self.observation_space = spaces.Discrete(2)  # actually just 1 but wanna pass 1 to DQN instead of 0
+        if dqn:
+            self.observation_space = spaces.Discrete(2)  # actually just 1 but wanna pass 1 to DQN instead of 0
+            self.dummy_ob = 1
+        else:
+            self.observation_space = spaces.Discrete(1)
+            self.dummy_ob = 0
 
         self.episode_len = episode_len
         self.reset_state = reset_state
@@ -39,7 +45,7 @@ class TwoFixedPoints(gym.Env):
         -------
         ob, reward, episode_over, info : tuple
             ob (object) :
-                Always None (no observations)
+                Constant (no observations)
             reward (float) :
             episode_over (bool) :
             info (dict) :
@@ -50,13 +56,14 @@ class TwoFixedPoints(gym.Env):
 
         if self.state == previous_state == "a":
             reward = 1
-        if self.state == previous_state == "b":
+        elif self.state == previous_state == "b":
             reward = 2
         else:
             reward = 0
 
-        ob = 1
+        ob = self.dummy_ob
         episode_over = self.current_step >= self.episode_len
+        info = {}
         return ob, reward, episode_over, info
 
     def reset(self):
@@ -67,8 +74,7 @@ class TwoFixedPoints(gym.Env):
         else:
             raise ValueError('reset_state must be one of "random", "a", or "b".')
         self.current_step = 0
-        ob = 1
-        return ob
+        return self.dummy_ob
 
     def render(self, mode='human'):
         raise NotImplementedError()

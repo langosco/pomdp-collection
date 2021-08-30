@@ -1,5 +1,5 @@
 from gym.envs.registration import register
-from .envs import SelfReinforcingBandit, POMDPBandit, IteratedSelfPD, TwoFixedPoints, AlternatingBandit
+from .envs import SelfReinforcingBandit, POMDPBandit, IteratedSelfPD, DoubleTap, AlternatingBandit
 
 register(
     id='mirror-bandit-v0',
@@ -13,8 +13,8 @@ register(
 
 
 register(
-    id='fixed-points-v0',
-    entry_point='gym_pomdps.envs:TwoFixedPoints',
+    id='double-tap-v0',
+    entry_point='gym_pomdps.envs:DoubleTap',
 )
 
 register(
