@@ -1,8 +1,8 @@
 import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
-import numpy as np
 import itertools
+import numpy as np
 
 ###############
 # DESCRIPTION 
@@ -80,6 +80,13 @@ class AlternatingBandit(gym.Env):
 
     def step(self, action: tuple):
         """
+        Args
+        -------
+            action :
+                tuple (arm, sign). Action space
+                is {0, 1} x {0, 1}, corresponding
+                to {safe arm, risky arm} x {don't flip, flip}
+                
         Returns
         -------
         ob, reward, episode_over, info : tuple
@@ -127,11 +134,12 @@ class MakeActionSpaceDiscrete(gym.Wrapper):
     """
     def __init__(self, env):
         super().__init__(env)
-        self.flatdim = spaces.utils.flatdim(self.action_space)
-        self.action_space = spaces.Discrete(self.flatdim)
+        flatdim = spaces.utils.flatdim(self.action_space)
+        self._action_tuple_shape = [s.n for s in self.action_space]
+        self.action_space = spaces.Discrete(flatdim)
 
     def flat_to_tuple(self, action):
-        return (action % self.flatdim, action // self.flatdim)
+        return np.unravel_index(action, self._action_tuple_shape)
 
     def step(self, action):
         action = self.flat_to_tuple(action)
