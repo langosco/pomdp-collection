@@ -1,4 +1,4 @@
 from gym_pomdps.envs.iterated_prisoners_dilemma import IteratedSelfPD
 from gym_pomdps.envs.self_reinforcing_bandit import SelfReinforcingBandit, POMDPBandit
 from gym_pomdps.envs.double_tap import DoubleTap
-from gym_pomdps.envs.alternating_bandit import AlternatingBandit
+from gym_pomdps.envs.alternating_bandit import AlternatingBandit, MakeActionSpaceDiscrete

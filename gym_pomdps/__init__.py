@@ -1,5 +1,5 @@
 from gym.envs.registration import register
-from .envs import SelfReinforcingBandit, POMDPBandit, IteratedSelfPD, DoubleTap, AlternatingBandit
+from .envs import SelfReinforcingBandit, POMDPBandit, IteratedSelfPD, DoubleTap, AlternatingBandit, MakeActionSpaceDiscrete
 
 register(
     id='mirror-bandit-v0',

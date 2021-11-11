@@ -7,34 +7,37 @@ import numpy as np
 ###############
 # DESCRIPTION 
 ###############
-# A 2-armed bandit game with a twist.
+# A 1-armed bandit game with a twist.
 #
-# Arm b1 always gives reward 1
-# Arm b2 alternates between reward 5 and -10. That is, it
-# returns reward 
-#       r(t, b2) = 5 if t even, else -10,
+# The reward from pulling the lever alternates between 
+# 5 and -10. That is, it returns reward 
+#       r(t, pull) = 5 if t even, else -10,
 # where t is the (unobserved) timestep. Note this is a
 # POMDP.
 # Given these rewards, a memoryless agent should simply
-# learn to always pull b1.
+# learn to always abstain from pulling the lever.
 #
 # But: the environment also includes a sign, painted green
 # on one side and red on the other. At each timestep, in
-# addition to pulling an arm, the agent may decide to 
+# addition to pulling the arm, the agent may decide to 
 # flip the sign. In the next timestep, the agent will
 # observe the color of the sign. 
 # An optimal policy will use the sign as external memory:
 # it will flip the sign at each turn, and use the alternating
-# observations to only pull arm b2 every other turn.
+# observations to only pull the lever every other turn.
 # This is possible only if the initial sign state is
 # always the same, which is the case in this implementation.
 #
 # Formally: the action space is
-#       A = {b1, b2} x {flip, don't flip},
+#       A = {don't pull, pull} x {don't flip, flip}
+#         ~= {0, 1} x {0, 1},
+#
 # the state space is
-#       S = {red, green} x {0, 1},
+#       S = {red, green} x {dangerous, safe}
+#         ~= {0, 1} x {0, 1}
+#
 # and the observation space is
-#       O = {red, green}.
+#       O = {red, green} ~= {0, 1}.
 
 
 class AlternatingBandit(gym.Env):
@@ -42,30 +45,32 @@ class AlternatingBandit(gym.Env):
 
     def __init__(
             self, 
-            episode_len=np.inf):
+            episode_len=10):
         """
         args:
             episode_len: if passed, cap episodes at the given
                 length. Otherwise infinite time horizon.
+                Warning: infinite episode length makes
+                learning an optimal policy even more impossible.
         """
         super().__init__()
-        arms = spaces.Discrete(2)  # {b1, b2}
-        sign = spaces.Discrete(2)  # {flip, don't flip}
-        self.action_space = spaces.Tuple((arms, sign))
+        arm = spaces.Discrete(2)  # {don't pull, pull}
+        sign = spaces.Discrete(2)  # {don't flip, flip}
+        self.action_space = spaces.Tuple((arm, sign))
         self.observation_space = spaces.Discrete(2)
         self.episode_len = episode_len
         self.reset()
 
     def _reward(self, action: tuple):
         """
-        safe 0: danger, arm 2 gives -10
-        safe 1: safe, arm 2 gives +5
+        args:
+            action is a tuple (pull, flip) \in {0, 1}^2
         """
-        arm, _ = action
+        pull, _ = action
         _, safe = self.state
-        if arm == 0:
-            return 1
-        elif arm == 1:
+        if pull == 0:
+            return 0
+        elif pull == 1:
             return -10*(1-safe) + 5*safe
 
     def _update_state(self, action):
@@ -83,9 +88,9 @@ class AlternatingBandit(gym.Env):
         Args
         -------
             action :
-                tuple (arm, sign). Action space
+                tuple (pull, flip). Action space
                 is {0, 1} x {0, 1}, corresponding
-                to {safe arm, risky arm} x {don't flip, flip}
+                to {don't pull, pull} x {don't flip, flip}
                 
         Returns
         -------
@@ -93,8 +98,8 @@ class AlternatingBandit(gym.Env):
             ob (integer) :
                 0 (for red) or 1 (for green).
             reward (float) :
-                pull arm 0: r = 1
-                pull arm 1: r = -10 or 5, depending on state
+                0 if agent doesn't pull, else 
+                -10 or 5, depending on state
             done (bool) :
                 After self.max_steps steps (default 40).
             info (dict) :
