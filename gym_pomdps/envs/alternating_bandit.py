@@ -45,13 +45,16 @@ class AlternatingBandit(gym.Env):
 
     def __init__(
             self, 
-            episode_len=10):
+            episode_len=10,
+            rewards=[5, -5]):
         """
         args:
             episode_len: if passed, cap episodes at the given
                 length. Otherwise infinite time horizon.
                 Warning: infinite episode length makes
                 learning an optimal policy even more impossible.
+            rewards: tuple of two scalars: reward for pulling lever
+                on an even vs. odd timestep (first timestep is 1, ie odd).
         """
         super().__init__()
         arm = spaces.Discrete(2)  # {don't pull, pull}
@@ -59,6 +62,7 @@ class AlternatingBandit(gym.Env):
         self.action_space = spaces.Tuple((arm, sign))
         self.observation_space = spaces.Discrete(2)
         self.episode_len = episode_len
+        self.rewards = rewards
         self.reset()
 
     def _reward(self, action: tuple):
@@ -71,7 +75,7 @@ class AlternatingBandit(gym.Env):
         if pull == 0:
             return 0
         elif pull == 1:
-            return -10*(1-safe) + 5*safe
+            return self.rewards[1]*(1-safe) + self.rewards[0]*safe
 
     def _update_state(self, action):
         _, flip_sign = action
