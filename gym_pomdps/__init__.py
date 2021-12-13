@@ -1,5 +1,5 @@
 from gym.envs.registration import register
-from .envs import SelfReinforcingBandit, POMDPBandit, IteratedSelfPD, DoubleTap, AlternatingBandit, MakeActionSpaceDiscrete
+from .envs import SelfReinforcingBandit, POMDPBandit, IteratedSelfPD, DoubleTap, AlternatingBandit, MakeActionSpaceDiscrete, MakeObservationSpaceDiscrete, SimpleSequentialNav
 
 register(
     id='mirror-bandit-v0',
@@ -20,4 +20,9 @@ register(
 register(
     id='alternating-bandit-v0',
     entry_point='gym_pomdps.envs:AlternatingBandit',
+)
+
+register(
+    id='sequential-nav-v0',
+    entry_point='gym_pomdps.envs:SimpleSequentialNav',
 )
