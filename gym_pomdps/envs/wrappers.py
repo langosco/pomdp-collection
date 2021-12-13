@@ -3,6 +3,11 @@ from gym import spaces
 import numpy as np
 
 
+def flat_size(tuple_env):
+    """return size of flattened env"""
+    return 
+
+
 class MakeActionSpaceDiscrete(gym.Wrapper):
     """
     Wrapper that changes the shape of an environment

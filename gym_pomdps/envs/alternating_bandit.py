@@ -134,9 +134,3 @@ class AlternatingBandit(gym.Env):
 
     def close(self):
         pass
-
-
-def flat_size(tuple_env):
-    """return size of flattened env"""
-    return 
-
