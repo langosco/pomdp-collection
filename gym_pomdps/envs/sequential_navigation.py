@@ -20,25 +20,37 @@ class SimpleSequentialNav(gym.Env):
 
     def __init__(
             self,
-            num_goals=5,
-            episode_len=20,
-            mem_size=10,
+            num_goals: int = 5,
+            episode_len: int = 20,
+            mem_size: int = 10,
+            write_method: str = "flexible",
     ):
         """
         args:
             episode_len: if passed, cap episodes at the given
                 length. Otherwise infinite time horizon.
             num_goals: how many coins to collect
+            write_method: one of 'flexible': one action per integer 
+                the agent can write to memory, or 'plus one': just
+                two actions, do nothing or add +1 to the int in memory
+                (modulo mem_size).
         """
         super().__init__()
         num_locations = num_goals + 1
         self.locations = list(range(num_locations))
         # actions are (move, write), and
         # obs are (current_loc, read, coin yes/no)
-        self.action_space = spaces.MultiDiscrete([num_locations, mem_size])
+        if write_method == "flexible":
+            self.action_space = spaces.MultiDiscrete([num_locations, mem_size])
+        elif write_method == "plus one":
+            self.action_space = spaces.MultiDiscrete([num_locations, 2])
+        else:
+            raise ValueError(f"write_method invalid: '{write_method}'")
         self.observation_space = spaces.MultiDiscrete([num_locations, mem_size, 2])
         self.episode_len = episode_len
         self.num_goals = num_goals
+        self.write_method = write_method
+        self.mem_size = mem_size
         self.reset()
 
     def _previous_coins_collected(self):
@@ -68,7 +80,17 @@ class SimpleSequentialNav(gym.Env):
 
     def _update_state(self, action):
         move, write = action
-        self.memory = write
+        if self.write_method == "flexible":
+            self.memory = write
+        elif self.write_method == "plus one":
+            if write:
+                self.memory = (self.memory + 1) % self.mem_size
+            else:
+                pass
+        else:
+            raise
+
+
         if self.current_loc == 0 \
         or move == 0 \
         or move == self.current_loc:
