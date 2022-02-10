@@ -1,6 +1,5 @@
 import gym
 from gym import error, spaces, utils
-from gym.utils import seeding
 import numpy as np
 
 
@@ -49,8 +48,8 @@ class POMDPBandit(gym.Env):
             ob (integer) :
                 Timestep
             reward (float) :
-                Equal to number of times the lever `action` has been pushed
-                so far.
+                nonzero only when current action is the one most frequently
+                used in the action buffer.
             done (bool) :
                 After self.max_steps steps (default 40).
             info (dict) :
@@ -127,8 +126,8 @@ class POMDPBanditEpisodic(gym.Env):
             ob (integer) :
                 Timestep
             reward (float) :
-                Equal to number of times the lever `action` has been pushed
-                so far.
+                nonzero only when current action is the one most frequently
+                used in the action buffer.
             done (bool) :
                 After self.max_steps steps (default 40).
             info (dict) :
@@ -176,13 +175,15 @@ class SelfReinforcingBandit(gym.Env):
 
     def __init__(
             self, 
-            episode_len=40,
-            num_arms=5,
+            episode_len=20,
+            num_arms=10,
+            arm_rewards=None,
             observe_timestep=False):
         """
         args:
             observe_timestep: whether to include the current timestep
                 in observations.
+            arm_rewards: list of reward (factors) for each arm
         """
         super().__init__()
         self.episode_len = episode_len
@@ -193,6 +194,12 @@ class SelfReinforcingBandit(gym.Env):
         else:
             self.observation_space = spaces.Discrete(1)
             self.dummy_ob = 0  # can add 1 to DQN input if I want
+
+        if arm_rewards is not None:
+            self.arm_rewards = arm_rewards
+        else:
+            self.arm_rewards = list(range(num_arms))
+            np.random.shuffle(self.arm_rewards) # for setting seed should pass in at initialization
         self.reset()
 
     def step(self, action: int):
@@ -206,7 +213,7 @@ class SelfReinforcingBandit(gym.Env):
                 Equal to number of times the lever `action` has been pushed
                 so far.
             done (bool) :
-                After self.max_steps steps (default 40).
+                After self.episode_len steps
             info (dict) :
                 includes environment state (lever pull counts).
         """
@@ -215,15 +222,7 @@ class SelfReinforcingBandit(gym.Env):
 
         self.current_step += 1
         self.pull_counts[action] += 1
-        if all([a == action for a in self.prev_actions[-3:]]):
-            self.rew[action] += 1
-        self.prev_actions.append(action)
-        #reward = self.rew[action]
-        #reward = 1 if action == self.prev_actions[-2] else 0
-        reward = self.pull_counts[action]
-        #reward = 1 if self.pull_counts[action] > 3 else 0
-        #reward = self.pull_counts[action]*action
-        #reward = 10 if action == 0 else 0
+        reward = self.pull_counts[action] * self.arm_rewards[action]
 
         ob = self.current_step if self.observe_timestep else self.dummy_ob
         done = self.current_step >= self.episode_len - 1
@@ -232,11 +231,8 @@ class SelfReinforcingBandit(gym.Env):
 
     def reset(self):
         self.pull_counts = [0]*self.action_space.n
-        self.rew = [0]*self.action_space.n
-        self.prev_actions = [np.random.choice(self.action_space.n)]
         self.current_step = 0
-        ob = 0
-        return ob
+        return self.current_step if self.observe_timestep else self.dummy_ob
 
     def render(self, mode='human'):
         # google histogram in bash
