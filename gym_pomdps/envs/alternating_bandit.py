@@ -1,8 +1,9 @@
 import gym
-from gym import error, spaces, utils
-from gym.utils import seeding
-import itertools
+from gym import spaces
 import numpy as np
+from numpy.random import default_rng
+
+rng = default_rng(0)
 
 ###############
 # DESCRIPTION 
@@ -131,6 +132,153 @@ class AlternatingBandit(gym.Env):
         color, safe = self.state
         print("Sign color:", ["red", "green"][color])
         print("Arm two:", ["danger", "safe"][safe])
+
+    def close(self):
+        pass
+
+
+class AlternatingBanditWithResultObs(gym.Env):
+    metadata = {'render.modes': ['human']}
+
+    def __init__(
+            self, 
+            episode_len=20,
+            rewards=[5, -5],
+            init_color=None,
+            init_bandit_state=None):
+        """
+        In this version, agent observes result (reward / loss) after every
+        step and then has the option of flipping the sign, conditioning on
+        the result in previous step.
+        So we alternate between bandit step and sign step.
+
+        args:
+            episode_len: if passed, cap episodes at the given
+                length. Otherwise infinite time horizon.
+                Warning: infinite episode length makes
+                learning an optimal policy impossible.
+            rewards: tuple of two scalars: reward for pulling lever
+                on an safe vs. unsafe timestep.
+            init_color: first sign state (0 = red, 1 = green)
+            init_bandit_state: first bandit state (0 = danger, 1 = safe)
+        """
+        super().__init__()
+        # action space: {don't pull, pull} x {don't flip, flip}
+        self.action_space = spaces.MultiDiscrete([2, 2])
+
+        # obs space: {red, green} x {prev_dangerous, prev_safe, None} x {sign_round, bandit_round}
+        self.observation_space = spaces.MultiDiscrete([2, 3, 2])
+
+        if init_color is None:
+            self.init_color = "random"
+        else:
+            self.init_color = init_color
+
+        if init_bandit_state is None:
+            self.init_bandit_state = "random"
+        else:
+            self.init_bandit_state = init_bandit_state
+
+        self.dummy_obs = 2
+        self.episode_len = episode_len
+        self.rewards = rewards
+        self.reset()
+
+    def _reward(self, action: tuple):
+        """
+        args:
+            action is a tuple (pull, flip) \in {0, 1}^2
+        """
+        pull, _ = action
+        arm_active = pull and self.bandit_round
+        _, safe = self.state
+        return (self.rewards[1]*(1-safe) + self.rewards[0]*safe) * arm_active
+
+    def _update_state(self, action):
+        _, flip_sign = action
+        color, safe = self.state
+
+        if self.bandit_round:
+            self.bandit_round = False
+            safe = 1 - safe
+        else:
+            self.bandit_round = True
+
+        if flip_sign: # can always flip sign
+            color = 1 - color
+        
+        self.state = (color, safe)
+        self.current_step += 1
+        return
+
+    def _get_obs(self):
+        color, safe = self.state
+        if self.bandit_round:
+            ob = [color, self.dummy_obs, int(self.bandit_round)]  # only observe color
+        else:
+            ob = [color, 1-safe, int(self.bandit_round)]  # observe color and prev bandit state
+        return ob
+
+    def step(self, action: tuple):
+        """
+        Args
+        -------
+            action :
+                tuple (pull, flip). Action space
+                is {0, 1} x {0, 1}, corresponding
+                to {don't pull, pull} x {don't flip, flip}
+                
+        Returns
+        -------
+        ob, reward, episode_over, info : tuple
+            ob (integer) :
+                0 (for red) or 1 (for green).
+            reward (float) :
+                0 if agent doesn't pull, else 
+                -10 or 5, depending on state
+            done (bool) :
+                After self.max_steps steps (default 40).
+            info (dict) :
+                includes full environment state.
+        """
+        if not self.action_space.contains(action):
+            raise ValueError(f"Action {action} is invalid.")
+
+        reward = self._reward(action)
+        self._update_state(action)
+        ob = self._get_obs()
+
+        done = self.current_step >= self.episode_len
+        color, safe = self.state
+        info = {
+            "sign_color": color, 
+            "safe": safe, 
+            "bandit_round": self.bandit_round,
+        }
+        return ob, reward, done, info
+
+    def reset(self):
+        self.bandit_round = True  # first step is a bandit round
+        color = rng.integers(2) if self.init_color == "random" else self.init_color
+        bandit_state = rng.integers(2) if self.init_bandit_state == "random" else self.init_bandit_state
+        self.state = [color, bandit_state]  
+        self.current_step = 0
+        return self._get_obs()
+
+    def render(self, mode='human'):
+        color, safe = self.state
+        if self.bandit_round:
+            print("Bandit Round")
+            print("Sign color:", ["red", "green"][color])
+        else:
+            print("Sign Round")
+            prev_result = ["danger", "safe"][1-safe]
+            print("Sign color:", ["red", "green"][color])
+            print("Prev Result:", f"{prev_result}")
+
+        print()
+        print("Next Bandit State (unobserved):")
+        print(["danger", "safe"][safe])
 
     def close(self):
         pass
