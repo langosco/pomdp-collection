@@ -6,16 +6,24 @@ from numpy.random import default_rng
 rng = default_rng()
 
 class GuessBit(gym.Env):
-    def __init__(self, episode_len=40):
+    def __init__(self, episode_len=40, reward_weights=[1, 1]):
+        """
+        args:
+            extra_rews: terms to add to reward, depending on whether 
+            agent chooses to flip or not. This way we can make flipping
+            (or not flipping) an optimal policy.
+        """
         self.action_space = spaces.MultiDiscrete([2, 2])
         self.observation_space = spaces.Discrete(2)
         self.episode_len = episode_len
+        self.reward_weights = reward_weights
         self.reset()
         
     def step(self, action):
         self.current_step += 1
         flip, guess = action
         rew = 1 if guess == self.hidden else 0
+        rew *= self.reward_weights[guess == self.hidden]
         self.update_hidden()
         ob = int(not self.hidden) if flip else self.hidden
         done = self.current_step >= self.episode_len
