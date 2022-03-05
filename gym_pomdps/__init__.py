@@ -1,5 +1,5 @@
 from gym.envs.registration import register
-from .envs import SelfReinforcingBandit, POMDPBandit, IteratedSelfPD, DoubleTap, AlternatingBandit, SimpleSequentialNav, MultiArmedDoubleTap, ActionSpaceToDiscrete, ObservationSpaceToDiscrete, MultiArmedMTap, AlternatingBanditWithResultObs, GuessBit
+from .envs import SelfReinforcingBandit, POMDPBandit, IteratedSelfPD, DoubleTap, AlternatingBandit, SimpleSequentialNav, MultiArmedDoubleTap, ActionSpaceToDiscrete, ObservationSpaceToDiscrete, MultiArmedMTap, AlternatingBanditWithResultObs, GuessBit, TwoPlayerGame, BattleOfSexes
 
 register(
     id='mirror-bandit-v0',

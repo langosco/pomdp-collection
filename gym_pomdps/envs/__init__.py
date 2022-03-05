@@ -5,3 +5,4 @@ from gym_pomdps.envs.alternating_bandit import AlternatingBandit, AlternatingBan
 from gym_pomdps.envs.sequential_navigation import SimpleSequentialNav
 from gym_pomdps.envs.wrappers import ObservationSpaceToDiscrete, ActionSpaceToDiscrete
 from gym_pomdps.envs.guess_bit import GuessBit
+from gym_pomdps.envs.games import TwoPlayerGame, BattleOfSexes
