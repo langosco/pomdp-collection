@@ -203,6 +203,7 @@ class MultiArmedMTap(gym.Env):
         if m_list is None:
             self.m_list = 1 + np.arange(num_arms)
         else:
+            assert len(m_list) == num_arms
             self.m_list = m_list
         self.reset()
 

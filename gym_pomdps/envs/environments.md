@@ -15,4 +15,11 @@
   * Navigation task: visit n states in sequence. All states are reachable from on single central state.
   * A memoryless policy struggles, because it cannot remember which states it has already visited.
   * The env includes 'external' memory that a policy can use by writing / reading from it via actions / observations.
-
+* *$m$-tap*
+  * Variant of double-tap
+  * env had k arms, each arm returns reward only when pushed $m$ times in a row. $m$ can differ between arms.
+* *Guess bit*
+  * At every step, the a coin is flipped (this is the hidden state)
+  * Agent needs to guess the hidden bit
+  * Agent observes either the hidden bit directly, or flipped bit, depending the action in previous step (so agent takes two actions every step: a guess, and a direction on whether to flip the next observation)
+  * Nice thing about this env is that hidden state is indep of actions (and thus of policy)
