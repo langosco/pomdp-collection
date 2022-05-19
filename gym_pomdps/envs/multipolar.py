@@ -6,6 +6,15 @@ import numpy as np
 # pushing button only a little hurts, but
 # if agent pushes often enough it gets high return
 
+# edited to add: 
+# I don't think I've done any experiments with this one.
+# Also it seems like this one should just have one
+# optimal policy that is easily reachable? cause it's just
+# about pushing the one button more often (you start getting
+# reward when you've pushed the button > 4 times).
+
+# Though a variant with multiple buttons might be interesting,
+# I think that must be what I was orignally going for.
 
 class GeneralButtonEnv(gym.Env):
     metadata = {'render.modes': ['human']}
