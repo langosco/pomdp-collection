@@ -4,5 +4,5 @@ from gym_pomdps.envs.double_tap import DoubleTap, MultiArmedDoubleTap, MultiArme
 from gym_pomdps.envs.alternating_bandit import AlternatingBandit, AlternatingBanditWithResultObs
 from gym_pomdps.envs.sequential_navigation import SimpleSequentialNav
 from gym_pomdps.envs.wrappers import ObservationSpaceToDiscrete, ActionSpaceToDiscrete, AddExternalMemory
-from gym_pomdps.envs.guess_bit import GuessBit
+from gym_pomdps.envs.guess_bit import GuessBit, FlipBit
 from gym_pomdps.envs.games import TwoPlayerGame, BattleOfSexes

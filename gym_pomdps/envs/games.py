@@ -84,12 +84,12 @@ class TwoPlayerGame(gym.Env):
 class BattleOfSexes(TwoPlayerGame):
     def __init__(self, episode_len=40, burn_in=1, num_actions=2):
         if num_actions == 2:
-            game_payoff_matrix = [[0, 2],
-                                  [3, 0]]
-            player_payoff_matrix = [[0, 3],
-                                    [2, 0]]
+            game_payoff_matrix = [[0, 1],
+                                  [2, 0]]
+            player_payoff_matrix = [[0, 2],
+                                    [1, 0]]
         elif num_actions > 2:
-            returns = np.arange(num_actions) + 2
+            returns = np.arange(num_actions) + 1
             game_payoff_matrix = np.rot90(np.flip(np.diag(returns)))
             player_payoff_matrix = np.rot90(np.diag(returns))
         super().__init__(burn_in, game_payoff_matrix, player_payoff_matrix, episode_len)

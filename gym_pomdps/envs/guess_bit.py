@@ -6,6 +6,27 @@ from numpy.random import default_rng
 rng = default_rng()
 
 class GuessBit(gym.Env):
+    def __init__(self, episode_len=10, num_bits=1):
+        self.action_space = spaces.MultiDiscrete([2]*num_bits)
+        self.observation_space = spaces.MultiDiscrete([2]*num_bits)
+        self.num_bits = num_bits
+        self.episode_len = episode_len
+        self.reset()
+    
+    def step(self, action):
+        self.current_step += 1
+        rew = np.sum([a == o for a, o in zip(action, self.target)]) if self.current_step > 1 else 0
+        self.target = np.random.randint(0, 2, self.num_bits) # TODO use rng seed
+        done = self.current_step >= self.episode_len
+        info = {}
+        return self.target, rew, done, info
+
+    def reset(self):
+        self.target = np.random.randint(0, 2, self.num_bits) # TODO use rng seed
+        self.current_step = 0
+
+
+class FlipBit(gym.Env):
     def __init__(self, episode_len=40, reward_weights=[1, 1]):
         """
         args:
