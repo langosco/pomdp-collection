@@ -35,6 +35,8 @@ class DoubleTap(gym.Env):
 
         self.episode_len = episode_len
         self.reset_state = reset_state
+        self.opt_avg_timestep_rew = 2
+        self.subopt_avg_timestep_rew = 1
         self.reset()
 
     def step(self, action):

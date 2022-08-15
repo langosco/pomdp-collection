@@ -94,3 +94,6 @@ class BattleOfSexes(TwoPlayerGame):
             player_payoff_matrix = np.rot90(np.diag(returns))
         super().__init__(burn_in, game_payoff_matrix, player_payoff_matrix, episode_len)
 
+        self.opt_avg_timestep_rew = np.max(player_payoff_matrix)
+        self.subopt_avg_timestep_rew = self.opt_avg_timestep_rew - 1
+
