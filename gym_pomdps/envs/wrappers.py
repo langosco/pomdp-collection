@@ -133,7 +133,7 @@ class CombinedSpace(spaces.MultiDiscrete):
         return components
     
     def wrap_components(self, components):
-        """take component elements and return element of combined space"""
+        """take tuple of component elements and return element of combined space"""
         return concatenate(components)
     
     
