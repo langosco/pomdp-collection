@@ -28,7 +28,7 @@ class SimpleSequentialBandit(gym.Env):
         """
         super().__init__()
         self.action_space = spaces.Discrete(num_arms)
-        self.observation_space = spaces.Discrete(0)
+        self.observation_space = spaces.Discrete(1)
         self.episode_len = episode_len
         self.num_arms = num_arms
         self.reset()
