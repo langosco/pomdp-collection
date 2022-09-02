@@ -19,7 +19,7 @@ class SimpleSequentialBandit(gym.Env):
     def __init__(
             self,
             num_arms: int = 5,
-            episode_len: int = 5,
+            episode_len: int = 10,
     ):
         """
         args:
@@ -31,6 +31,8 @@ class SimpleSequentialBandit(gym.Env):
         self.observation_space = spaces.Discrete(1)
         self.episode_len = episode_len
         self.num_arms = num_arms
+        self.opt_avg_timestep_rew = self.num_arms / self.episode_len
+        self.subopt_avg_timestep_rew = self.opt_avg_timestep_rew / 2
         self.reset()
 
     def reset(self):
@@ -40,9 +42,9 @@ class SimpleSequentialBandit(gym.Env):
         ob = 0
         return ob
 
-    def step(self, action: tuple):
-        if not self.action_space.contains(action):
-            raise ValueError(f"Action {action} is invalid.")
+    def step(self, action: int):
+#         if not self.action_space.contains(action):
+#             raise ValueError(f"Action {action} is invalid.")   # raises error for jax DeviceArrays
         
         if action == self.next_arm:
             self.next_arm += 1
