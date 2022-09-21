@@ -18,7 +18,7 @@ class SimpleSequentialBandit(gym.Env):
 
     def __init__(
             self,
-            num_arms: int = 5,
+            num_arms: int = 10,
             episode_len: int = 10,
     ):
         """

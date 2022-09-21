@@ -76,8 +76,12 @@ class ObservationSpaceToDiscrete(gym.Wrapper):
 
 # Memory
 
-def concatenate(components):
-    """concatenate all lists in components. If an element is 0-d, treat it as a single element list"""
+def concatenate(components: list):
+    """
+    components is a list of lists and floats
+
+    concatenate all elements (list or float) in components. If an element is 0-d, treat it as a single element list
+    """
     components = [c if np.ndim(c) > 0 else [c] for c in components]
     return np.concatenate(components)
 
@@ -92,6 +96,7 @@ def combine_spaces(space_list):
 
 
 class Memory(gym.Env):
+    """Simple MDP consisting of a memory array, "read" observations, and "write" actions."""
     def __init__(self, num_bits=1):
         self.num_bits = num_bits
         self.action_space = spaces.MultiDiscrete([2]*num_bits)
